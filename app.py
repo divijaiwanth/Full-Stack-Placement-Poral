@@ -158,7 +158,150 @@ def admin_dashboard():
     if session.get('role') != 'admin':
         return redirect(url_for('login'))
         
-    return render_template('admin/dashboard.html')
+    # We need to count how many records are in each table to show statistics.
+    total_students = Student.query.count()
+    total_companies = Company.query.count()
+    total_drives = PlacementDrive.query.count()
+    total_applications = Application.query.count()
+        
+    # Pass all these totals to the template so it can display them.
+    return render_template('admin/dashboard.html', 
+                           total_students=total_students,
+                           total_companies=total_companies,
+                           total_drives=total_drives,
+                           total_applications=total_applications)
+
+# ==========================================
+# ADMIN MANAGEMENT ROUTES - COMPANIES
+# ==========================================
+
+@app.route('/admin/companies')
+def admin_companies():
+    if session.get('role') != 'admin':
+        return redirect(url_for('login'))
+        
+    # We grab the 'search' parameter from the URL if it exists (e.g. ?search=Google)
+    search_query = request.args.get('search')
+    
+    # If the admin typed something in the search bar, filter the users list.
+    if search_query:
+        # We look for any company whose name contains the search query.
+        companies = Company.query.filter(Company.name.contains(search_query)).all()
+    else:
+        # Otherwise, just grab every single company in the database.
+        companies = Company.query.all()
+        
+    return render_template('admin/companies.html', companies=companies)
+
+@app.route('/admin/approve-company/<int:company_id>')
+def approve_company(company_id):
+    if session.get('role') != 'admin': return redirect(url_for('login'))
+    
+    # Grab the specific company by its ID
+    company = db.session.get(Company, company_id)
+    if company:
+        company.approval_status = 'Approved' # Change status to approved
+        db.session.commit() # Save changes to database
+        flash(f'Company {company.name} has been Approved!')
+        
+    return redirect(url_for('admin_companies'))
+
+@app.route('/admin/reject-company/<int:company_id>')
+def reject_company(company_id):
+    if session.get('role') != 'admin': return redirect(url_for('login'))
+    
+    company = db.session.get(Company, company_id)
+    if company:
+        company.approval_status = 'Rejected' # Change status to rejected
+        db.session.commit()
+        flash(f'Company {company.name} has been Rejected.')
+        
+    return redirect(url_for('admin_companies'))
+
+@app.route('/admin/blacklist-company/<int:company_id>')
+def blacklist_company(company_id):
+    if session.get('role') != 'admin': return redirect(url_for('login'))
+    
+    company = db.session.get(Company, company_id)
+    if company:
+        company.is_blacklisted = True # Mark it as completely blacklisted
+        db.session.commit()
+        flash(f'Company {company.name} has been Blacklisted.')
+        
+    return redirect(url_for('admin_companies'))
+
+# ==========================================
+# ADMIN MANAGEMENT ROUTES - STUDENTS
+# ==========================================
+
+@app.route('/admin/students')
+def admin_students():
+    if session.get('role') != 'admin':
+        return redirect(url_for('login'))
+        
+    search_query = request.args.get('search')
+    
+    if search_query:
+        # Search across their name, email, or phone. Use the | (OR) operator for SQLAlchemy.
+        # This checks if the query string is inside ANY of those three columns.
+        students = Student.query.filter(
+            (Student.name.contains(search_query)) | 
+            (Student.email.contains(search_query)) | 
+            (Student.phone.contains(search_query))
+        ).all()
+    else:
+        # If no search query, list them all.
+        students = Student.query.all()
+        
+    return render_template('admin/students.html', students=students)
+
+@app.route('/admin/deactivate-student/<int:student_id>')
+def deactivate_student(student_id):
+    if session.get('role') != 'admin': return redirect(url_for('login'))
+    
+    student = db.session.get(Student, student_id)
+    if student:
+        student.is_active = False # Deactivate their account
+        db.session.commit()
+        flash(f'Student {student.name} deactivated successfully.')
+        
+    return redirect(url_for('admin_students'))
+
+# ==========================================
+# ADMIN MANAGEMENT ROUTES - DRIVES
+# ==========================================
+
+@app.route('/admin/drives')
+def admin_drives():
+    if session.get('role') != 'admin': return redirect(url_for('login'))
+    
+    # Grab all drives. The template will use 'drive.company.name' to show who made the drive.
+    drives = PlacementDrive.query.all()
+    return render_template('admin/drives.html', drives=drives)
+
+@app.route('/admin/approve-drive/<int:drive_id>')
+def approve_drive(drive_id):
+    if session.get('role') != 'admin': return redirect(url_for('login'))
+    
+    drive = db.session.get(PlacementDrive, drive_id)
+    if drive:
+        drive.status = 'Approved'
+        db.session.commit()
+        flash(f'Placement drive "{drive.job_title}" approved!')
+        
+    return redirect(url_for('admin_drives'))
+
+@app.route('/admin/reject-drive/<int:drive_id>')
+def reject_drive(drive_id):
+    if session.get('role') != 'admin': return redirect(url_for('login'))
+    
+    drive = db.session.get(PlacementDrive, drive_id)
+    if drive:
+        drive.status = 'Rejected'
+        db.session.commit()
+        flash(f'Placement drive "{drive.job_title}" rejected.')
+        
+    return redirect(url_for('admin_drives'))
 
 # The company dashboard route.
 @app.route('/company/dashboard')
@@ -169,10 +312,52 @@ def company_dashboard():
         
     # I want to show the company their own details, so I use their session ID to find them in the database.
     company_id = session.get('user_id')
-    current_company = Company.query.get(company_id)
+    current_company = db.session.get(Company, company_id)
+    
+    # Grab all drives related to this specific company.
+    drives = PlacementDrive.query.filter_by(company_id=company_id).all()
     
     # I pass the 'current_company' object to the HTML so my template can say "Welcome Google" or check their approval status.
-    return render_template('company/dashboard.html', company=current_company)
+    return render_template('company/dashboard.html', company=current_company, drives=drives)
+
+@app.route('/company/post-drive', methods=['GET', 'POST'])
+def post_drive():
+    if session.get('role') != 'company':
+        return redirect(url_for('login'))
+        
+    company_id = session.get('user_id')
+    current_company = db.session.get(Company, company_id)
+    
+    # Must be approved to post drives
+    if current_company.approval_status != 'Approved':
+        flash('You must be approved by the admin to post drives.')
+        return redirect(url_for('company_dashboard'))
+        
+    if request.method == 'POST':
+        # Retrieve form data submitted by company
+        job_title = request.form.get('job_title')
+        description = request.form.get('description')
+        eligibility = request.form.get('eligibility')
+        deadline = request.form.get('deadline')
+        
+        # Create a new PlacementDrive tied to this company
+        new_drive = PlacementDrive(
+            company_id=company_id,
+            job_title=job_title,
+            description=description,
+            eligibility=eligibility,
+            deadline=deadline,
+            status='Pending' # default to Pending for Admin approval
+        )
+        
+        db.session.add(new_drive)
+        db.session.commit()
+        
+        flash('Placement drive posted successfully! Waiting for admin approval.')
+        return redirect(url_for('company_dashboard'))
+        
+    # GET method simply renders the page
+    return render_template('company/post_drive.html', company=current_company)
 
 # The student dashboard route.
 @app.route('/student/dashboard')
@@ -183,7 +368,7 @@ def student_dashboard():
         
     # Let's find the specific student in the database so we can greet them by name.
     student_id = session.get('user_id')
-    current_student = Student.query.get(student_id)
+    current_student = db.session.get(Student, student_id)
     
     # We pass 'student' to the template so it can say "Welcome John".
     return render_template('student/dashboard.html', student=current_student)

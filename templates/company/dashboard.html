@@ -12,7 +12,7 @@
     <!-- Navigation styled distinctively for companies -->
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
         <div class="container">
-            <a class="navbar-brand" href="#">Company Portal</a>
+            <a class="navbar-brand" href="/company/dashboard">Company Portal</a>
             <div class="d-flex">
                 <a href="/logout" class="btn btn-outline-light btn-sm">Logout</a>
             </div>
@@ -20,6 +20,11 @@
     </nav>
 
     <div class="container mt-5">
+        {% with messages = get_flashed_messages() %}
+        {% if messages %}
+        <div class="alert alert-success">{{ messages[0] }}</div>
+        {% endif %}
+        {% endwith %}
 
         <!-- We check if the company has been approved by the Admin yet based on variable given by app.py -->
         {% if company.approval_status != 'Approved' %}
@@ -35,15 +40,61 @@
 
         {% else %}
         <!-- If they ARE approved, display the actual toolsets! -->
-        <div class="row">
-            <div class="col-12">
+        <div class="row mb-4">
+            <div class="col-md-8">
                 <h2>Welcome {{ company.name }}</h2>
                 <p class="text-muted">Manage your recruitment drives and track applications here.</p>
-                <hr>
+            </div>
+            <div class="col-md-4 text-end">
+                <a href="/company/post-drive" class="btn btn-primary mt-2">+ Post New Drive</a>
+            </div>
+        </div>
+        <hr>
 
-                <div class="alert alert-info border-0 shadow-sm mt-3">
-                    Your active drives will appear here once you post them.
+        <div class="row">
+            <div class="col-12">
+                <h4>Your Active Drives</h4>
+
+                {% if drives %}
+                <div class="table-responsive bg-white rounded shadow-sm p-3 mt-3">
+                    <table class="table table-hover align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Job Title</th>
+                                <th>Deadline</th>
+                                <th>Status</th>
+                                <th>Applications</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for drive in drives %}
+                            <tr>
+                                <td><strong>{{ drive.job_title }}</strong></td>
+                                <td>{{ drive.deadline }}</td>
+                                <td>
+                                    {% if drive.status == 'Approved' %}
+                                    <span class="badge bg-success">Approved</span>
+                                    {% elif drive.status == 'Rejected' %}
+                                    <span class="badge bg-danger">Rejected</span>
+                                    {% else %}
+                                    <span class="badge bg-warning text-dark">Pending</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <!-- Will implement viewing applications in next milestone -->
+                                    <button class="btn btn-sm btn-outline-secondary" disabled>View Apps</button>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
                 </div>
+                {% else %}
+                <div class="alert alert-info border-0 shadow-sm mt-3">
+                    You have not posted any recruitment drives yet.
+                    Click the "Post New Drive" button above to get started.
+                </div>
+                {% endif %}
             </div>
         </div>
         {% endif %}

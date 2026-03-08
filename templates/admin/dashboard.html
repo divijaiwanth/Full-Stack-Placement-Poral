@@ -13,33 +13,63 @@
     <!-- Navigation Bar for Admin Area -->
     <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
         <div class="container">
-            <a class="navbar-brand" href="#">Placement Portal Admin</a>
-            <div class="d-flex">
-                <!-- Our simple logout button, ending the session cleanly -->
-                <a href="/logout" class="btn btn-outline-light btn-sm">Logout</a>
+            <a class="navbar-brand" href="/admin/dashboard">Placement Portal Admin</a>
+            <div class="d-flex gap-2">
+                <!-- Navigation links to other admin pages -->
+                <a href="/admin/companies" class="btn btn-outline-light btn-sm border-0">Companies</a>
+                <a href="/admin/students" class="btn btn-outline-light btn-sm border-0">Students</a>
+                <a href="/admin/drives" class="btn btn-outline-light btn-sm border-0">Drives</a>
+                <a href="/logout" class="btn btn-light btn-sm ms-3">Logout</a>
             </div>
         </div>
     </nav>
 
-    <!-- The main interface body -->
     <div class="container mt-5">
-        <div class="row">
-            <div class="col-12">
-                <!-- Greeting the administrator -->
-                <h2>Welcome Admin</h2>
-                <p class="text-muted">Manage the placement activities from here.</p>
-                <hr>
+        <h2>Admin Dashboard</h2>
+        <p class="text-muted">Overview of placement activities.</p>
+        <hr>
 
-                <!-- Quick links block to manage portal components later -->
-                <div class="d-flex gap-3">
-                    <button class="btn btn-primary" disabled>View Companies</button>
-                    <button class="btn btn-success" disabled>View Students</button>
-                    <button class="btn btn-info text-white" disabled>View Drives</button>
+        <!-- Statistics Cards showing the totals passed from app.py -->
+        <div class="row text-center mt-4">
+            <div class="col-md-3 mb-3">
+                <div class="card shadow-sm border-primary">
+                    <div class="card-body">
+                        <h5 class="card-title text-primary">Total Students</h5>
+                        <!-- Using double curly braces to print the Python variable -->
+                        <h2 class="display-5">{{ total_students }}</h2>
+                    </div>
                 </div>
-                <!-- Adding a note explaining these aren't functional in Milestone 2 yet! -->
-                <p class="mt-3 text-secondary small">* Management features will be active in later milestones.</p>
+            </div>
+
+            <div class="col-md-3 mb-3">
+                <div class="card shadow-sm border-dark">
+                    <div class="card-body">
+                        <h5 class="card-title text-dark">Total Companies</h5>
+                        <h2 class="display-5">{{ total_companies }}</h2>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-3 mb-3">
+                <div class="card shadow-sm border-info">
+                    <div class="card-body">
+                        <h5 class="card-title text-info">Total Drives</h5>
+                        <h2 class="display-5">{{ total_drives }}</h2>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-3 mb-3">
+                <div class="card shadow-sm border-success">
+                    <div class="card-body">
+                        <h5 class="card-title text-success">Total Applications</h5>
+                        <!-- Fixed total applications variable rendering -->
+                        <h2 class="display-5">{{ total_applications }}</h2>
+                    </div>
+                </div>
             </div>
         </div>
+
     </div>
 </body>
 

@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Students - Admin</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+
+<body class="bg-light">
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="/admin/dashboard">Admin Panel</a>
+            <div class="d-flex gap-2">
+                <a href="/admin/dashboard" class="btn btn-outline-light btn-sm border-0">Dashboard</a>
+                <a href="/admin/companies" class="btn btn-outline-light btn-sm border-0">Companies</a>
+                <a href="/admin/drives" class="btn btn-outline-light btn-sm border-0">Drives</a>
+                <a href="/logout" class="btn btn-light btn-sm ms-3">Logout</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-5">
+        <h2>Registered Students</h2>
+        <hr>
+
+        {% with messages = get_flashed_messages() %}
+        {% if messages %}
+        <div class="alert alert-success">{{ messages[0] }}</div>
+        {% endif %}
+        {% endwith %}
+
+        <!-- Admin multi-search form for Students -->
+        <form method="GET" action="/admin/students" class="d-flex mb-4 w-50">
+            <input type="text" name="search" class="form-control me-2" placeholder="Search by name, email, or phone...">
+            <button type="submit" class="btn btn-secondary">Search</button>
+        </form>
+
+        <div class="table-responsive bg-white rounded shadow-sm p-3">
+            <table class="table table-hover align-middle">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Student Name</th>
+                        <th>Email</th>
+                        <th>Phone</th>
+                        <th>Education Details</th>
+                        <th>Account Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for student in students %}
+                    <tr>
+                        <td>{{ student.name }}</td>
+                        <td>{{ student.email }}</td>
+                        <td>{{ student.phone or "N/A" }}</td>
+                        <td>{{ student.education or "N/A" }}</td>
+                        <td>
+                            {% if student.is_active %}
+                            <span class="badge bg-success">Active</span>
+                            {% else %}
+                            <span class="badge bg-danger">Deactivated</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <!-- Provide the option to deactivate only if they are currently active -->
+                            {% if student.is_active %}
+                            <a href="/admin/deactivate-student/{{ student.id }}"
+                                class="btn btn-danger btn-sm">Deactivate</a>
+                            {% else %}
+                            <span class="text-muted small">Account Locked</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="6" class="text-center">No students found.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</body>
+
+</html>
