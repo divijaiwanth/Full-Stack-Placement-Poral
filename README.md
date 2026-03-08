@@ -1,44 +1,37 @@
-# Placement Portal Application (MAD-I)
+# Placement Portal Application
 
-This project is developed as part of the **Modern Application Development I** course.
-
-The Placement Portal Application helps institutes manage campus recruitment activities by connecting **students, companies, and the placement cell** on a single platform.
-
-## Features
-
-* Admin manages companies, students, and placement drives
-* Companies create placement drives and shortlist candidates
-* Students apply for placement drives and track application status
+A campus placement portal managing recruitment drives for an institute. It handles three types of users: Admin, Company, and Student. Companies can create placement drives, and students can apply to them.
 
 ## Tech Stack
+- **Backend:** Python (Flask framework)
+- **Database:** SQLite with Flask-SQLAlchemy (ORM)
 
-Backend:
+## Installation Instructions
 
-* Flask
+1. **Clone the repository or navigate to the project directory**
+2. **Create a virtual environment (optional but recommended):**
+   ```bash
+   python -m venv venv
+   # Windows:
+   venv\Scripts\activate
+   # macOS/Linux:
+   source venv/bin/activate
+   ```
+3. **Install the dependencies:**
+   ```bash
+   pip install -r requirements.txt
+   ```
 
-Frontend:
+## Running the Project
 
-* Jinja2
-* HTML
-* CSS
-* Bootstrap
+1. **Start the Flask application:**
+   ```bash
+   python app.py
+   ```
+   *Note: This will automatically create the database `instance/placement.db` and initialize the default admin user.*
+2. **Access the application:**
+   Open your browser and navigate to `http://127.0.0.1:5000/`. You should see the text: "Placement Portal Application Running".
 
-Database:
-
-* SQLite
-
-## How to Run
-
-Install dependencies
-
-```
-pip install -r requirements.txt
-```
-
-Run application
-
-```
-python app.py
-```
-
-The database will be automatically created when the application starts.
+### Default Admin Credentials
+- **Username:** `admin`
+- **Password:** `admin123`
