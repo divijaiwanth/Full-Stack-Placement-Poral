@@ -81,8 +81,9 @@
                                     {% endif %}
                                 </td>
                                 <td>
-                                    <!-- Will implement viewing applications in next milestone -->
-                                    <button class="btn btn-sm btn-outline-secondary" disabled>View Apps</button>
+                                    <!-- Link to the specific list of applications for this drive -->
+                                    <a href="/company/applications/{{ drive.id }}"
+                                        class="btn btn-sm btn-outline-primary">View Apps</a>
                                 </td>
                             </tr>
                             {% endfor %}

@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Drive Applications - Placement Portal</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+
+<body class="bg-light">
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand" href="/company/dashboard">Company Portal</a>
+            <div class="d-flex">
+                <a href="/logout" class="btn btn-outline-light btn-sm">Logout</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-5">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h2>Applications for "{{ drive.job_title }}"</h2>
+                <p class="text-muted">Review student profiles and update their recruitment status.</p>
+            </div>
+            <a href="/company/dashboard" class="btn btn-outline-secondary">Back to Dashboard</a>
+        </div>
+        <hr>
+
+        {% with messages = get_flashed_messages() %}
+        {% if messages %}
+        <div class="alert alert-success">{{ messages[0] }}</div>
+        {% endif %}
+        {% endwith %}
+
+        <div class="table-responsive bg-white rounded shadow-sm p-3 mt-4">
+            <table class="table table-hover align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>Student Name</th>
+                        <th>Education</th>
+                        <th>Skills</th>
+                        <th>Resume</th>
+                        <th>Current Status</th>
+                        <th>Update Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for application in applications %}
+                    <!-- Traversing relationships to pull the applicant's data -->
+                    <tr>
+                        <td><strong>{{ application.student.name }}</strong><br><small class="text-muted">{{
+                                application.student.email }}</small></td>
+                        <td>{{ application.student.education or "N/A" }}</td>
+                        <td>{{ application.student.skills or "N/A" }}</td>
+                        <td>
+                            {% if application.student.resume_path %}
+                            <a href="{{ url_for('static', filename='resumes/' + application.student.resume_path) }}"
+                                class="btn btn-sm btn-outline-info" target="_blank">View Resume</a>
+                            {% else %}
+                            <span class="text-muted small">Not provided</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <!-- Stylized Badges representing the Application's Status -->
+                            {% if application.status == 'Applied' %}
+                            <span class="badge bg-secondary">Applied</span>
+                            {% elif application.status == 'Shortlisted' %}
+                            <span class="badge bg-primary">Shortlisted</span>
+                            {% elif application.status == 'Interview' %}
+                            <span class="badge bg-warning text-dark">Interview</span>
+                            {% elif application.status == 'Selected' %}
+                            <span class="badge bg-success">Selected</span>
+                            {% elif application.status == 'Rejected' %}
+                            <span class="badge bg-danger">Rejected</span>
+                            {% elif application.status == 'Placed' %}
+                            <span class="badge bg-info text-dark">Placed</span>
+                            {% else %}
+                            <span class="badge bg-light text-dark">{{ application.status }}</span>
+                            {% endif %}
+                        </td>
+                        <td style="min-width: 200px;">
+                            <!-- Form handling the Status manipulation hook -->
+                            <form action="/company/update-application/{{ application.id }}" method="POST"
+                                class="d-flex gap-2">
+                                <select name="status" class="form-select form-select-sm">
+                                    <option value="Applied" {% if application.status=='Applied' %}selected{% endif %}>
+                                        Applied</option>
+                                    <option value="Shortlisted" {% if application.status=='Shortlisted' %}selected{%
+                                        endif %}>Shortlisted</option>
+                                    <option value="Interview" {% if application.status=='Interview' %}selected{% endif
+                                        %}>Interview</option>
+                                    <option value="Selected" {% if application.status=='Selected' %}selected{% endif %}>
+                                        Selected</option>
+                                    <option value="Rejected" {% if application.status=='Rejected' %}selected{% endif %}>
+                                        Rejected</option>
+                                    <option value="Placed" {% if application.status=='Placed' %}selected{% endif %}>
+                                        Placed</option>
+                                </select>
+                                <button type="submit" class="btn btn-sm btn-success">Update</button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="6" class="text-center">No applications received yet.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+    </div>
+</body>
+
+</html>

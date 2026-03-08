@@ -98,10 +98,21 @@ def register_student():
         education = request.form.get('education')
         skills = request.form.get('skills')
         
-        # For the resume, I am just getting the file name for now.
-        # In the future I will need to save the actual file to a folder.
+        import os
+        from werkzeug.utils import secure_filename
+        
+        # For the resume, let's actually save it!
         resume_file = request.files.get('resume')
-        resume_path = resume_file.filename if resume_file else None
+        resume_path = None
+        
+        if resume_file and resume_file.filename:
+            # Secure the filename so no one can upload weird files like ../../../etc/passwd
+            resume_path = secure_filename(resume_file.filename)
+            # Create the 'static/resumes' folder if it doesn't exist yet
+            save_dir = os.path.join(app.root_path, 'static', 'resumes')
+            os.makedirs(save_dir, exist_ok=True)
+            # Save the file physically to the directories
+            resume_file.save(os.path.join(save_dir, resume_path))
 
         # Now I create a new Student object using my database model.
         new_student = Student(
@@ -359,19 +370,108 @@ def post_drive():
     # GET method simply renders the page
     return render_template('company/post_drive.html', company=current_company)
 
-# The student dashboard route.
+@app.route('/company/applications/<int:drive_id>')
+def view_drive_applications(drive_id):
+    if session.get('role') != 'company':
+        return redirect(url_for('login'))
+        
+    company_id = session.get('user_id')
+    drive = db.session.get(PlacementDrive, drive_id)
+    
+    # Security check: Ensure this drive actually belongs to the logged-in company!
+    if not drive or drive.company_id != company_id:
+        flash("You do not have permission to view this drive's applications.")
+        return redirect(url_for('company_dashboard'))
+        
+    # Grab all the applications submitted specifically for this drive.
+    applications = Application.query.filter_by(drive_id=drive_id).all()
+    
+    return render_template('company/applications.html', drive=drive, applications=applications)
+
+@app.route('/company/update-application/<int:application_id>', methods=['POST'])
+def update_application(application_id):
+    if session.get('role') != 'company':
+        return redirect(url_for('login'))
+        
+    company_id = session.get('user_id')
+    application = db.session.get(Application, application_id)
+    
+    # 1. Ensure the application exists
+    # 2. Ensure its parent Drive was actually posted by *this* company
+    if not application or application.drive.company_id != company_id:
+        flash("Unauthorized action.")
+        return redirect(url_for('company_dashboard'))
+        
+    # Grab the new status selected from the dropdown menu in the HTML
+    new_status = request.form.get('status')
+    valid_statuses = ['Applied', 'Shortlisted', 'Interview', 'Selected', 'Rejected', 'Placed']
+    
+    if new_status in valid_statuses:
+        application.status = new_status
+        db.session.commit()
+        flash(f"Application status updated to '{new_status}' successfully.")
+        
+    # Redirect right back to the applications list they were just looking at.
+    return redirect(url_for('view_drive_applications', drive_id=application.drive_id))
+
+from datetime import date
+
+# ==========================================
+# STUDENT ROUTES AND DASHBOARD
+# ==========================================
+
 @app.route('/student/dashboard')
 def student_dashboard():
     # Security check: Only students allowed here.
     if session.get('role') != 'student':
         return redirect(url_for('login'))
         
-    # Let's find the specific student in the database so we can greet them by name.
     student_id = session.get('user_id')
     current_student = db.session.get(Student, student_id)
     
-    # We pass 'student' to the template so it can say "Welcome John".
-    return render_template('student/dashboard.html', student=current_student)
+    # We only show drives that the Admin has set to "Approved"
+    approved_drives = PlacementDrive.query.filter_by(status='Approved').all()
+    
+    return render_template('student/dashboard.html', student=current_student, drives=approved_drives)
+
+@app.route('/student/apply/<int:drive_id>')
+def apply_to_drive(drive_id):
+    if session.get('role') != 'student':
+        return redirect(url_for('login'))
+        
+    student_id = session.get('user_id')
+    
+    # 1. Check if the student already applied to this specific drive. We don't want duplicate data!
+    existing_application = Application.query.filter_by(student_id=student_id, drive_id=drive_id).first()
+    
+    if existing_application:
+        flash('You have already applied for this drive.')
+    else:
+        # 2. If no duplicate is found, create a new record.
+        new_application = Application(
+            student_id=student_id,
+            drive_id=drive_id,
+            date_applied=date.today().strftime("%Y-%m-%d"),
+            status='Applied' # Starting status is always 'Applied'
+        )
+        db.session.add(new_application)
+        db.session.commit()
+        flash('Successfully applied to the drive!')
+        
+    return redirect(url_for('student_dashboard'))
+
+@app.route('/student/applications')
+def student_applications():
+    if session.get('role') != 'student':
+        return redirect(url_for('login'))
+        
+    student_id = session.get('user_id')
+    current_student = db.session.get(Student, student_id)
+    
+    # Check all applications tied to this specific student ID.
+    applications = Application.query.filter_by(student_id=student_id).all()
+    
+    return render_template('student/applications.html', student=current_student, applications=applications)
 
 # This is the starting point of the application.
 if __name__ == '__main__':
