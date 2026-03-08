@@ -1,90 +1,86 @@
 from database import db
 
+# This class creates the Admin table.
+# The admin is the one who controls the placement cell.
 class Admin(db.Model):
-    """This table represents the placement cell administrator."""
-    # Primary key
+    # Every table needs an ID as a primary key.
     id = db.Column(db.Integer, primary_key=True)
-    # Unique username for the admin
+    # The username must be unique so two people can't have the same one.
     username = db.Column(db.String(80), unique=True, nullable=False)
-    # Admin password
+    # The password is required (nullable=False).
     password = db.Column(db.String(120), nullable=False)
 
+# This table will store all the profile details of the students who register.
 class Student(db.Model):
-    """This table stores student profiles."""
-    # Primary key
     id = db.Column(db.Integer, primary_key=True)
-    # Student name
+    # The student's full name.
     name = db.Column(db.String(100), nullable=False)
-    # Unique email address for the student
+    # Using email as a unique identifier for login.
     email = db.Column(db.String(120), unique=True, nullable=False)
-    # Student password
+    # Store their password.
     password = db.Column(db.String(120), nullable=False)
-    # Phone number
+    
+    # These fields are optional so nullable=True.
     phone = db.Column(db.String(20), nullable=True)
-    # Student education details
     education = db.Column(db.String(200), nullable=True)
-    # Skills possessed by the student
+    # Using db.Text because skills could be a long paragraph.
     skills = db.Column(db.Text, nullable=True)
-    # Path to the uploaded resume
+    # I am just storing the path to the resume file here, not the actual file.
     resume_path = db.Column(db.String(200), nullable=True)
-    # Boolean to check if the student is active
+    # This checks if the student account is active. I might use it later to ban students.
     is_active = db.Column(db.Boolean, default=True)
     
-    # Relationship: A student can have multiple applications.
+    # A relationship link! One student can have many applications. 
     applications = db.relationship('Application', backref='student', lazy=True)
 
+# This table stores the companies who want to recruit students.
 class Company(db.Model):
-    """Companies must be approved by admin before posting placement drives."""
-    # Primary key
     id = db.Column(db.Integer, primary_key=True)
-    # Company Name
     name = db.Column(db.String(100), nullable=False)
-    # Unique company email
+    # Company email is unique and used for their login.
     email = db.Column(db.String(120), unique=True, nullable=False)
-    # Company password
     password = db.Column(db.String(120), nullable=False)
-    # Company website
+    
+    # Extra details about the company.
     website = db.Column(db.String(200), nullable=True)
-    # HR contact details
     hr_contact = db.Column(db.String(100), nullable=True)
-    # Approval status: Pending / Approved / Rejected
+    
+    # Very important: Companies are "Pending" until the admin approves them.
     approval_status = db.Column(db.String(50), default='Pending')
-    # Boolean to check if the company is blacklisted
+    # Admin can blacklist a company if they do something wrong.
     is_blacklisted = db.Column(db.Boolean, default=False)
     
-    # Relationship: One company can create multiple placement drives.
+    # Relationship: One company can post many placement drives.
     drives = db.relationship('PlacementDrive', backref='company', lazy=True)
 
+# This table represents a single job posting or "drive" created by a company.
 class PlacementDrive(db.Model):
-    """This represents a recruitment drive created by a company."""
-    # Primary key
     id = db.Column(db.Integer, primary_key=True)
-    # Foreign key referencing company.id
+    # Foreign key linking this drive to the company who created it.
     company_id = db.Column(db.Integer, db.ForeignKey('company.id'), nullable=False)
-    # Job title
+    
+    # Details about the job.
     job_title = db.Column(db.String(100), nullable=False)
-    # Job description
     description = db.Column(db.Text, nullable=False)
-    # Eligibility criteria
     eligibility = db.Column(db.Text, nullable=False)
-    # Deadline to apply
     deadline = db.Column(db.String(50), nullable=False)
-    # Status of the drive: Pending / Approved / Closed
+    
+    # Drives start as pending until approved by admin. Then they can be closed later.
     status = db.Column(db.String(50), default='Pending')
     
-    # Relationship: A drive can receive multiple applications.
+    # Relationship: Many students can apply to this one drive.
     applications = db.relationship('Application', backref='drive', lazy=True)
 
+# This table keeps track of when a student applies for a specific drive.
 class Application(db.Model):
-    """This table stores when students apply for placement drives."""
-    # Primary key
     id = db.Column(db.Integer, primary_key=True)
-    # Foreign key referencing student.id
+    # Link to the student who is applying.
     student_id = db.Column(db.Integer, db.ForeignKey('student.id'), nullable=False)
-    # Foreign key referencing placementdrive.id
-    # Note: Flask-SQLAlchemy automatically names the table 'placement_drive' by default.
+    # Link to the drive they are applying for. 
+    # Flask-SQLAlchemy automatically named the table 'placement_drive'.
     drive_id = db.Column(db.Integer, db.ForeignKey('placement_drive.id'), nullable=False)
-    # Date when the student applied
+    
+    # Storing the date they applied.
     date_applied = db.Column(db.String(50), nullable=False)
-    # Status of the application: Applied / Shortlisted / Selected / Rejected
+    # The status tells us if they are shortlisted, selected, or rejected.
     status = db.Column(db.String(50), default='Applied')

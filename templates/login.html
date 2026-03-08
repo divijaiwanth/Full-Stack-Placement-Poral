@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Placement Portal</title>
+    <!-- We're using Bootstrap to quickly make it look nice and clean -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+    <div class="container mt-5">
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                <!-- Our login box -->
+                <div class="card shadow-sm">
+                    <div class="card-header bg-primary text-white text-center">
+                        <h4 class="mb-0">Placement Portal Login</h4>
+                    </div>
+                    <div class="card-body p-4">
+                        
+                        <!-- Show any error messages (like wrong password) passed from Flask -->
+                        {% with messages = get_flashed_messages() %}
+                          {% if messages %}
+                            <div class="alert alert-danger" role="alert">
+                              {{ messages[0] }}
+                            </div>
+                          {% endif %}
+                        {% endwith %}
+
+                        <!-- The login form itself -->
+                        <form method="POST" action="/login">
+                            
+                            <!-- Role Selection so we know which table to check -->
+                            <div class="mb-3">
+                                <label for="role" class="form-label">I am a:</label>
+                                <select class="form-select" id="role" name="role" required>
+                                    <option value="student">Student</option>
+                                    <option value="company">Company</option>
+                                    <option value="admin">Admin</option>
+                                </select>
+                            </div>
+
+                            <!-- Email / Username field -->
+                            <div class="mb-3">
+                                <label for="email" class="form-label">Email (or Username for Admin)</label>
+                                <input type="text" class="form-control" id="email" name="email" required>
+                            </div>
+
+                            <!-- Password field -->
+                            <div class="mb-3">
+                                <label for="password" class="form-label">Password</label>
+                                <input type="password" class="form-control" id="password" name="password" required>
+                            </div>
+
+                            <!-- Submit button -->
+                            <button type="submit" class="btn btn-primary w-100 mb-3">Login</button>
+
+                            <!-- Helpful links to register if they don't have an account -->
+                            <div class="text-center">
+                                <p class="mb-1">Don't have an account?</p>
+                                <a href="/register/student" class="text-decoration-none me-3">Register as Student</a>
+                                <a href="/register/company" class="text-decoration-none">Register as Company</a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

@@ -30,8 +30,16 @@ A campus placement portal managing recruitment drives for an institute. It handl
    ```
    *Note: This will automatically create the database `instance/placement.db` and initialize the default admin user.*
 2. **Access the application:**
-   Open your browser and navigate to `http://127.0.0.1:5000/`. You should see the text: "Placement Portal Application Running".
+   Open your browser and navigate to `http://127.0.0.1:5000/`. You should immediately be redirected to the secure login application page.
 
-### Default Admin Credentials
-- **Username:** `admin`
-- **Password:** `admin123`
+### Roles and Authentication System
+This application uses simple session-based authentication to manage access securely. There are three types of user tiers available:
+
+1. **Admin**
+   - Can monitor whole portal activities. 
+   - **Default Credentials:** Username: `admin` | Password: `admin123`
+2. **Companies**
+   - Must register through `/register/company` first.
+   - Requires Administrator Approval before they gain full abilities. Login attempts while unapproved route to a 'Pending' restriction page.
+3. **Students** 
+   - May register at `/register/student` independently to browse functionality and drive statuses once approved.
