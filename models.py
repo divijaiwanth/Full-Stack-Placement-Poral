@@ -28,6 +28,8 @@ class Student(db.Model):
     # I am just storing the path to the resume file here, not the actual file.
     resume_path = db.Column(db.String(200), nullable=True)
     # This checks if the student account is active. I might use it later to ban students.
+    branch = db.Column(db.String(10), default="Btech",nullable=False)
+    father_name = db.Column(db.String(100),nullable=True)
     is_active = db.Column(db.Boolean, default=True)
     
     # A relationship link! One student can have many applications. 

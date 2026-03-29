@@ -74,6 +74,8 @@ def register_student():
         phone = request.form.get('phone')
         education = request.form.get('education')
         skills = request.form.get('skills')
+        branch = request.form.get('branch')
+        father_name = request.form.get('father_name')
         
         import os
         from werkzeug.utils import secure_filename
@@ -90,7 +92,7 @@ def register_student():
         new_student = Student(
             name=name, email=email, password=password,
             phone=phone, education=education, skills=skills,
-            resume_path=resume_path
+            resume_path=resume_path, branch=branch, father_name=father_name
         )
         db.session.add(new_student)
         db.session.commit()

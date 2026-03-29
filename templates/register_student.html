@@ -15,7 +15,7 @@
             <div class="col-md-8">
                 <!-- This card wraps our registration form nicely -->
                 <div class="card shadow-sm">
-                    <div class="card-header bg-success text-white">
+                    <div class="card-header bg-dark text-white">
                         <h4 class="mb-0 text-center">Student Registration</h4>
                     </div>
                     <div class="card-body p-4">
@@ -53,9 +53,18 @@
                                 <textarea class="form-control" id="skills" name="skills" rows="3"></textarea>
                             </div>
 
+                            <div class="mb-3">
+                                <label for="branch" class="form-label" style="color: blueviolet;">Branch</label>
+                                <input type="text" class="form-control" id="branch" name="branch">
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="father_name" class="form-label" style="color: blueviolet;">Fathers Name</label>
+                                <input type="text" class="form-control" id="father_name" name="father_name">
+                            </div>
+
                             <div class="mb-4">
                                 <label for="resume" class="form-label">Upload Resume (.pdf)</label>
-                                <!-- It's common to ask for a file, though we aren't saving it physically in this simple milestone just yet -->
                                 <input type="file" class="form-control" id="resume" name="resume">
                             </div>
 
